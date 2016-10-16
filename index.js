@@ -5,31 +5,32 @@ var passport = require('passport');
 var CasStrategy = require('passport-cas').Strategy;
 
 var app = express();
-app.use(require('serve-static')(__dirname + '/../../public'));
-app.use(require('cookie-parser')());
-app.use(require('body-parser').urlencoded({ extended: true }));
-app.use(require('express-session')({ secret: 'keyboard cat', resave: true, saveUninitialized: true }));
-app.use(passport.initialize());
-app.use(passport.session());
+app.set('port', (process.env.PORT || 5000));
+// app.use(require('serve-static')(__dirname + '/../../public'));
+// app.use(require('cookie-parser')());
+// app.use(require('body-parser').urlencoded({ extended: true }));
+// app.use(require('express-session')({ secret: 'keyboard cat', resave: true, saveUninitialized: true }));
+// app.use(passport.initialize());
+// app.use(passport.session());
 
-passport.use(new CasStrategy({
-	ssoBaseURL: 'https://login.gatech.edu/cas',
-	serverBaseURL: 'http://m.gatech.edu/w/schedule/c/api/myschedule'
-	},
-	function(login, done) {
-		console.log('authenticating');
-		User.findOne({login: login}, function(err, user) {
-			if (err) {
-				return done(err);
-			}
-			if (!user) {
-				return done(null, false, {message : 'Unknown user'});
-			}
-			return done(null, user);
-		});
-		console.log(username);
-	}
-));
+// passport.use(new CasStrategy({
+// 	ssoBaseURL: 'https://login.gatech.edu/cas',
+// 	serverBaseURL: 'http://m.gatech.edu/w/schedule/c/api/myschedule'
+// 	},
+// 	function(login, done) {
+// 		console.log('authenticating');
+// 		User.findOne({login: login}, function(err, user) {
+// 			if (err) {
+// 				return done(err);
+// 			}
+// 			if (!user) {
+// 				return done(null, false, {message : 'Unknown user'});
+// 			}
+// 			return done(null, user);
+// 		});
+// 		console.log(username);
+// 	}
+// ));
 // cas.configure({
 //   casHost: "http://login.gatech.edu/cas/login",   // required
 //   casPath: "/cas",                  // your cas login route (defaults to "/cas")
@@ -74,6 +75,6 @@ app.get('/', function(req, res) {
 // app.get('/login', cas.bouncer, routes.login);
 //app.get('/', cas.bounce, routes.login);
 
-app.listen(3000, function () {
-  console.log('Example app listening on port 3000!');
+app.listen(app.get('port'), function () {
+  console.log('Node app listening on port', app.get('port'));
 });
