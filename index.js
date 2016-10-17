@@ -70,13 +70,15 @@ app.get('/', function(req, res) {
 });
 
 app.get('/db', function(req, res) {
+	console.log(process.env.DATABASE_URL);
 	pg.connect(process.env.DATABASE_URL, function(err, client, done) {
 		client.query('SELECT * from test_table', function(err, result) {
 			done();
 			if (err) {
 				console.error(err); res.send("Error " + err);
 			} else {
-				res.render('pages/db', {results: result.rows});
+				res.send(result.rows);
+				//res.render('pages/db', {results: result.rows});
 			}
 		});
 	});
