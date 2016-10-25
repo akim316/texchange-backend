@@ -2,6 +2,7 @@ var express = require('express');
 var routes = require('./routes');
 var request = require('request');
 var passport = require('passport');
+var cors = require('cors');
 var pg = require('pg');
 var CasStrategy = require('passport-cas').Strategy;
 
