@@ -83,6 +83,27 @@ app.get('/schedule/:acc', function(req, res) {
 	res.send(arr);
 });
 
+//app.get('/addtextbook/:isbn');
+app.get('/addtextbook/course/:course_id', function(req, res) {
+	var isbn = req.query.isbn;
+	var name = req.query.name;
+	var author = req.query.author;
+	var edition = req.query.edition;
+	var publisher = req.query.publisher;
+	var course_id = req.params.course_id;
+
+	pg.connect(process.env.DATABASE_URL, function(err, client, done) {
+		client.query("INSERT INTO textbook" + 
+			"(isbn, title, author, publisher, edition, course_id)" +
+			"VALUES ($1::text,$2::text,$3::text[],$4::text," + isbn + "," + name + "," + author + "," + publisher + "," + edition +)
+	})
+
+
+	res.json({'name': name, 'author': author, 'edition': edition, 'publisher': publisher});
+
+
+});
+
 app.get('/textbook/:class', function(req, res) {
 	var course_id = req.params.class;
 	console.log(process.env.DATABASE_URL);

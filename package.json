@@ -4,15 +4,15 @@
   "description": "",
   "main": "index.js",
   "dependencies": {
-    "pg": "4.x",
     "body-parser": "^1.15.2",
     "cookie-parser": "^1.4.3",
-    "passport": "^0.3.2",
-    "express-session": "^1.14.1",
     "express": "^4.14.0",
+    "express-session": "^1.14.1",
+    "passport": "^0.3.2",
     "passport-cas": "^0.1.0",
-    "request": "^2.75.0",
     "passport-cas2": "^0.0.8",
+    "pg": "4.x",
+    "request": "^2.75.0",
     "serve-static": "^1.11.1"
   },
   "devDependencies": {},
@@ -33,4 +33,3 @@
     "node": "4.1.1"
   }
 }
-
