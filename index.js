@@ -76,12 +76,19 @@ app.get('/schedule/gtid/:acc', function(req, res) {
 
 	for (var i = 0; i < coursesArray.length; i++) {
 		var elem = coursesArray[i];
-		var subj = elem.subject_code + " " + elem.course_number;
-		var obj = { 'course_id': subj, 'professor': elem.instructors[0].name }
-		console.log(subj);
-		if (arr.indexOf(subj) === -1) {
+		if (elem.meeting_type_code == 'A') {
+			var subj = elem.subject_code + " " + elem.course_number;
+			var obj = {};
+			for (var j = 0; j < elem.instructors.length; j++) {
+				if (elem.instructors[j].is_primary) {
+					obj = { 'course_id': subj, 'professor': elem.instructors[j].name };
+					break;
+				}
+			}
 			arr.push(obj);
+			console.log(subj);
 		}
+
 	}
 	res.send(arr);
 });
