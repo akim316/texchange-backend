@@ -77,9 +77,10 @@ app.get('/schedule/gtid/:acc', function(req, res) {
 	for (var i = 0; i < coursesArray.length; i++) {
 		var elem = coursesArray[i];
 		var subj = elem.subject_code + " " + elem.course_number;
+		var obj = { 'course_id': subj, 'professor': elem.instructors[0].name }
 		console.log(subj);
 		if (arr.indexOf(subj) === -1) {
-			arr.push(subj);
+			arr.push(obj);
 		}
 	}
 	res.send(arr);
@@ -136,9 +137,9 @@ app.get('/addtextbook/course/:course_id', function(req, res) {
 });
 
 //Confirm paid or request
-app.get('/buyerrequest', function(req, res) {
+app.get('/buyerrequest/buyer/:buyer_id', function(req, res) {
 	var cost = req.query.cost;
-	var buyer = req.query.buyer;
+	var buyer = req.params.buyer_id;
 	var isbn = req.query.isbn;
 
 	pg.connect(process.env.DATABASE_URL, function(err, client, done) {
@@ -198,9 +199,9 @@ app.get('/buyerpurchase/buyer/:buyer_id/listingid/:listing_id', function(req, re
 	//res.json({'name': name, 'author': author, 'edition': edition, 'publisher': publisher});
 });
 
-app.get('/sellerpost', function(req, res) {
+app.get('/sellerpost/seller/:seller', function(req, res) {
 	var cost = req.query.cost;
-	var seller = req.query.seller;
+	var seller = req.params.seller;
 	var isbn = req.query.isbn;
 
 	pg.connect(process.env.DATABASE_URL, function(err, client, done) {
@@ -264,7 +265,17 @@ app.get('/textbook/course/:class/professor/:professor', function(req, res) {
 			if (err) {
 				console.error(err); res.send("Error " + err);
 			} else {
-				res.send(result.rows);
+				if (result.rows.length == 0) {
+					client.query('SELECT * FROM textbook WHERE course_id=\'' + course_id + '\'', function(err, result) {
+						if (err) {
+							console.error(err); res.send("Error " + err);
+						} else {
+							res.send(result.rows);
+						}
+					});
+				} else {
+					res.send(result.rows);
+				}
 				//res.render('pages/db', {results: result.rows});
 			}
 		});
@@ -286,6 +297,22 @@ app.get('/listingforbuyer/isbn/:isbn', function(req, res) {
 		});
 	});
 });
+
+// app.get('/professor/course/:course', function(req, res) {
+
+// 	pg.connect(process.env.DATABASE_URL, function(err, client, done) {
+// 		console.log(course_id);
+// 		client.query('SELECT * FROM textbook WHERE course_id=\'' + course_id + '\' AND professor=\'' + professor + '\'', function(err, result) {
+// 			done();
+// 			if (err) {
+// 				console.error(err); res.send("Error " + err);
+// 			} else {
+// 				res.send(result.rows);
+// 				//res.render('pages/db', {results: result.rows});
+// 			}
+// 		});
+// 	});
+// })
 
 app.get('/db', function(req, res) {
 	console.log(process.env.DATABASE_URL);

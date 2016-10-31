@@ -13,7 +13,7 @@
     "passport-cas": "^0.1.0",
     "passport-cas2": "^0.0.8",
     "pg": "4.x",
-    "request": "^2.75.0",
+    "request": "^2.76.0",
     "serve-static": "^1.11.1"
   },
   "devDependencies": {},
