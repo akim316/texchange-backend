@@ -268,7 +268,7 @@ app.get('/buyerpurchase/buyer/:buyer_id/listingid/:listing_id', function(req, re
 							to: seller + '@gatech.edu',
 							subject: 'Someone has bought your textbook: ' + title + '!',
 							text: buyer_id + ' has agreed to purchase your book ' + title +
-								  ' for ' + cost + '. Please use this email to communicate with the buyer.' 
+								  ' for ' + cost + '. Please use this email to communicate with the buyer about payment method, as well as exchange location and time.' 
 						}
 						mailgun.messages().send(data, function (error, body) {
   							console.log(body);
