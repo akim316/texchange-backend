@@ -1,71 +1,160 @@
 var express = require('express');
-var routes = require('./routes');
 var request = require('request');
-var passport = require('passport');
+var http = require('http');
 var cors = require('cors');
 var pg = require('pg');
-var CasStrategy = require('passport-cas').Strategy;
+var session = require('express-session')
+var https = require('https');
+var parseString = require('xml2js').parseString;
+require("jsdom").env("", function(err, window) {
+    if (err) {
+        console.error(err);
+        return;
+    }
+ 
+    var $ = require("jquery")(window);
+});
+
+var os = require("os");
+var hostname = "localhost";
+console.log("Current Hostname: %s",hostname);
+
+var api_key = 'key-9577f2bebf17f3f9d5b19b44b2821b31';
+var domain = 'texchange-cs4261.me';
+var mailgun = require('mailgun-js')({apiKey: api_key, domain: domain});
+
+var ips = [];
+var nics = os.networkInterfaces();
+Object.keys(nics).forEach(function (nicId) {
+	var nic = nics[nicId];
+	nics[nicId].forEach(function (address) {
+		if (!address['internal'] && address['family']=='IPv4' && address['mac'] != '00:00:00:00:00:00') {
+			ips.push(address['address']);
+		}
+	});
+});
+
+console.log("Current IPs: %s", ips[ips.length - 1]);
+
 
 var app = express();
 app.use(cors());
+app.use(session({
+	resave: true,
+	saveUninitialized: true,
+	secret: "cree craw toad's foot geese walk barefoot"
+}));
 app.set('port', (process.env.PORT || 5000));
-// app.use(require('serve-static')(__dirname + '/../../public'));
-// app.use(require('cookie-parser')());
-// app.use(require('body-parser').urlencoded({ extended: true }));
-// app.use(require('express-session')({ secret: 'keyboard cat', resave: true, saveUninitialized: true }));
-// app.use(passport.initialize());
-// app.use(passport.session());
+app.set('trust proxy', 1);
 
-// passport.use(new CasStrategy({
-// 	ssoBaseURL: 'https://login.gatech.edu/cas',
-// 	serverBaseURL: 'http://m.gatech.edu/w/schedule/c/api/myschedule'
-// 	},
-// 	function(login, done) {
-// 		console.log('authenticating');
-// 		User.findOne({login: login}, function(err, user) {
-// 			if (err) {
-// 				return done(err);
-// 			}
-// 			if (!user) {
-// 				return done(null, false, {message : 'Unknown user'});
-// 			}
-// 			return done(null, user);
-// 		});
-// 		console.log(username);
-// 	}
-// ));
-// cas.configure({
-//   casHost: "http://login.gatech.edu/cas/login",   // required
-//   casPath: "/cas",                  // your cas login route (defaults to "/cas")
-//   ssl: true,                        // is the cas url https? defaults to false
-//   port: 443,                        // defaults to 80 if ssl false, 443 if ssl true
-//   service: "http://localhost:3000", // your site
-//   // sessionName: "cas_user",          // the cas user_name will be at req.session.cas_user (this is the default)
-//   // renew: false,                     // true or false, false is the default
-//   // gateway: false,                   // true or false, false is the default
-//   redirectUrl: '/splash'            // the route that cas.blocker will send to if not authed. Defaults to '/'
-// });
-app.get('/login',
-	passport.authenticate('cas', function (err, user, info) {
-		console.log('kek why doesnt it work');
-		if (err) {
-			return next(err);
-		}
+var sess;
+app.get('/login*', function (req, res) {
+	// if (req.hostname != hostname) {
+	// 	var hostnameWithPort = req.get('host').replace(req.hostname, hostname);
+	// 	var fullUrl = req.protocol + '://' + hostnameWithPort + req.originalUrl;
+	// 	res.redirect(302, fullUrl);
+	// 	return;
+	// }
 
-		if (!user) {
-			req.session.messages = info.message;
-			return res.redirect('/');
-		}
 
-		req.logIn(user, function(err) {
-			if (err) {
-				return next(err);
-			}
+	//var baseURL = req.protocol + '://' + req.get('host');//should fix this to work with req.url but have to trim off ticket info to work
+	var baseURL = "http://lawn-" + ips[ips.length - 1].split('.').join('-') + ".lawn.gatech.edu:5000/login/";
+	//var baseURL = "http://m.gatech.edu/w/schedule/c/api/myschedule";
+	sess = req.session;
+	/*
+	* Here we have assign the 'session' to 'sess'.
+	* Now we can create any number of session variable we want.
+	* in PHP we do as $_SESSION['var name'].
+	* Here we do like this.
+	*/
+	if (sess.username !== undefined) {
+	    //Already logged in before
+	    //res.send('Hello ' + sess.username + '!');
+		// console.log('here');
+		// var options = {
+		//   host: 'm.gatech.edu',
+		//   port: 80,
+		//   path: '/w/schedule/c/api/myschedule',
+		//   headers: {'Referer': 'http://m.gatech.edu/w/schedule/c/'}
+		// };
 
-			req.session.messages = '';
-			return res.redirect('/');
-		});
-	}));
+		// http.get(options, function(res1) {
+		//   var body = '';
+		//   res1.on('data', function(chunk) {
+		//     body += chunk;
+		//   });
+		//   res1.on('end', function() {
+		//     res.send(body);
+		//   });
+		// }).on('error', function(e) {
+		//   console.log("Got error: " + e.message);
+		// });
+
+		// res.append('Referer', 'ab');
+
+		 
+	    res.redirect('http://m.gatech.edu/widget/schedule/content/api/myschedule');
+	} else if (req.query.ticket !== undefined) {
+	    //Check to see if this is a login request
+	    var serviceValidate = 'https://login.gatech.edu/cas/serviceValidate?service=' + encodeURIComponent(baseURL) + '&ticket=' + encodeURIComponent(req.query.ticket);
+	    console.log(serviceValidate);
+
+	    https.get(serviceValidate, function(validateResponse) {
+	    	var body = '';
+	    	validateResponse.on('data', function(chunk) {
+	    		body += chunk;
+	    	});
+			validateResponse.on('end', function() {
+				//handling the response
+				parseString(body, function (err, result) {
+					if (result !== undefined && result['cas:serviceResponse'] !== undefined) {
+					    if (result['cas:serviceResponse']['cas:authenticationSuccess'] !== undefined) {
+							var sucessResult = result['cas:serviceResponse']['cas:authenticationSuccess'];
+							sess.username = sucessResult[0]['cas:user'][0];
+
+							//redirect back to where we started
+							res.redirect(sess.requestedURL);
+							delete sess.requestedURL;
+				  		} else {
+							//Login Failed Try Again: May cause infinite browser redirect loop
+							res.redirect(302, 'https://login.gatech.edu/cas/login?service=' + encodeURIComponent(baseURL));
+				    	}
+				    	console.dir(JSON.stringify(result));
+				  	} else {
+				    	res.send('Unable To Process CAS Response')
+				  	}
+				});
+			});
+	    }).on('error', function(e) {
+	    	res.send('HTTP Validation error');
+	    });
+	} else {
+		// console.log('kek1');
+		// //res.redirect('http://m.gatech.edu/w/schedule/c/');
+		// var options = {
+		//   host: 'm.gatech.edu',
+		//   port: 80,
+		//   path: '/w/schedule/c/',
+		// };
+
+		// http.get(options, function(res1) {
+		//   var body = '';
+		//   res1.on('data', function(chunk) {
+		//     body += chunk;
+		//   });
+		//   res1.on('end', function() {
+		//     console.log(body);
+		//   });
+		// }).on('error', function(e) {
+		//   console.log("Got error: " + e.message);
+		// });
+
+		sess.requestedURL = req.url;
+		//This is unlogged in user redirect them
+		res.redirect(302, 'https://login.gatech.edu/cas/login?service=' + encodeURIComponent(baseURL));
+	}
+});
+
 
 app.get('/schedule/gtid/:acc', function(req, res) {
 	var gtid = req.params.acc;
@@ -114,19 +203,20 @@ app.get('/addcourse/course/:course_id/', function(req, res) {
 			});
 	});
 });
-app.get('/addtextbook/course/:course_id', function(req, res) {
+app.get('/addtextbook/course/:course_id/professor/:professor', function(req, res) {
 	var isbn = req.query.isbn;
 	var name = req.query.name;
 	var author = req.query.author;
 	var edition = req.query.edition;
 	var publisher = req.query.publisher;
 	var course_id = req.params.course_id;
+	var professor = req.params.professor;
 
 	pg.connect(process.env.DATABASE_URL, function(err, client, done) {
 		client.query("INSERT INTO textbook " + 
-			"(isbn, title, author, publisher, edition, course_id) " +
-			"VALUES ($1::text,$2::text,$3::text[],$4::text,$5::text,$6::text)",
-			[isbn, name, author, publisher, edition, course_id],
+			"(isbn, title, author, publisher, edition, course_id, professor) " +
+			"VALUES ($1::text,$2::text,$3::text[],$4::text,$5::text,$6::text,$7::text)",
+			[isbn, name, author, publisher, edition, course_id, professor],
 			function(err, result) {
 				done();
 				if (err) {
@@ -195,6 +285,16 @@ app.get('/buyerpurchase/buyer/:buyer_id/listingid/:listing_id', function(req, re
 					if (err) {
 						console.error(err); res.send("Error " + err);
 					} else {
+						var data = {
+							from: buyer_id + ' <' + buyer_id + '@gatech.edu>',
+							to: seller + '@gatech.edu',
+							subject: 'Someone has bought your textbook: ' + title + '!',
+							text: buyer_id + ' has agreed to purchase your book ' + title +
+								  ' for ' + cost + '. Please use this email to communicate with the buyer.' 
+						}
+						mailgun.messages().send(data, function (error, body) {
+  							console.log(body);
+						});
 						res.send({'cost': cost, 'isbn': isbn, 'title': title, 'author': author, 'seller': seller});
 						//res.render('pages/db', {results: result.rows});
 					}
@@ -336,12 +436,6 @@ app.get('/db', function(req, res) {
 	});
 });
 
-// app.get('/splash', function(req, res) {
-// 	res.send('Hello world');
-// });
-
-// app.get('/login', cas.bouncer, routes.login);
-//app.get('/', cas.bounce, routes.login);
 
 app.listen(app.get('port'), function () {
   console.log('Node app listening on port', app.get('port'));

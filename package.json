@@ -4,17 +4,17 @@
   "description": "",
   "main": "index.js",
   "dependencies": {
-    "body-parser": "^1.15.2",
-    "cookie-parser": "^1.4.3",
     "cors": "^2.8.1",
     "express": "^4.14.0",
     "express-session": "^1.14.1",
-    "passport": "^0.3.2",
-    "passport-cas": "^0.1.0",
-    "passport-cas2": "^0.0.8",
+    "https": "^1.0.0",
+    "jquery": "^3.1.1",
+    "jsdom": "^9.8.3",
+    "mailgun-js": "^0.7.13",
     "pg": "4.x",
     "request": "^2.76.0",
-    "serve-static": "^1.11.1"
+    "serve-static": "^1.11.1",
+    "xml2js": "^0.4.17"
   },
   "devDependencies": {},
   "scripts": {
