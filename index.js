@@ -34,7 +34,7 @@ Object.keys(nics).forEach(function (nicId) {
 	});
 });
 
-console.log("Current IPs: %s", ips[ips.length - 1]);
+console.log("Current IPs: %s", ips);
 
 
 var app = express();
