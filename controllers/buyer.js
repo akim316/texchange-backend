@@ -77,7 +77,7 @@ exports.getAvailable = function(req, res) {
 	var isbn = req.params.isbn;
 	var userId = req.params.userId;
 	pg.connect(process.env.DATABASE_URL, function(err, client, done) {
-		client.query('SELECT e.*, t.title, t.author FROM exchange_info e, textbook t WHERE e.isbn = t.isbn AND e.isbn=\'' + isbn + '\' AND ' +
+		client.query('SELECT e.*, t.title FROM exchange_info e, textbook t WHERE e.isbn = t.isbn AND e.isbn=\'' + isbn + '\' AND ' +
 			'((e.buyer IS NULL AND e.seller IS NOT NULL) OR (e.buyer is NOT NULL and NOT EXISTS(SELECT 1 FROM unnest(e.buyer) as b WHERE b = \'' + userId + '\'' +
 			') and e.seller is NOT NULL and e.confirmed is FALSE))', function(err, result) {
 			done();
@@ -93,7 +93,7 @@ exports.getAvailable = function(req, res) {
 exports.getHistory = function(req, res) {
 	var buyer = req.params.buyerId;
 	pg.connect(process.env.DATABASE_URL, function(err, client, done) {
-		client.query('SELECT e.*, t.title FROM exchange_info e, textbook t WHERE buyer @> \'{"' + buyer + '"}\' AND e.isbn=t.isbn', function(err, result) {
+		client.query('SELECT e.*, t.title, t.author FROM exchange_info e, textbook t WHERE buyer @> \'{"' + buyer + '"}\' AND e.isbn=t.isbn', function(err, result) {
 			done();
 
 			var pending = [];
