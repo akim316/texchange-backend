@@ -71,26 +71,21 @@ exports.purchaseTextbook = function(req, res) {
 	});
 
 };
+
+//dont show postings that which the buyer has already requested
 exports.getAvailable = function(req, res) {
 	var isbn = req.params.isbn;
 	var userId = req.params.userId;
 	pg.connect(process.env.DATABASE_URL, function(err, client, done) {
-
-		client.query('SELECT * FROM exchange_info WHERE isbn=\'' + isbn + '\' AND buyer @> \'{"' + userId + '"}\'', function(err, result) {
+		client.query('SELECT e.*, t.title FROM exchange_info e, textbook t WHERE e.isbn = t.isbn AND e.isbn=\'' + isbn + '\' AND ' +
+			'((e.buyer IS NULL AND e.seller IS NOT NULL) OR (e.buyer is NOT NULL and NOT EXISTS(SELECT 1 FROM unnest(e.buyer) as b WHERE b = \'' + userId + '\'' +
+			') and e.seller is NOT NULL and e.confirmed is FALSE))', function(err, result) {
 			done();
-			if (result.rows.length > 0) {
-				res.send([]);
+			if (err) {
+				console.error(err); res.send("Error " + err);
 			} else {
-				client.query('SELECT e.*, t.title FROM exchange_info e, textbook t WHERE e.isbn = t.isbn AND e.isbn=\'' + isbn + '\' AND ' +
-					'((e.buyer IS NULL AND e.seller IS NOT NULL) OR (e.buyer is NOT NULL and e.seller is NOT NULL and e.confirmed is FALSE))', function(err, result) {
-					done();
-					if (err) {
-						console.error(err); res.send("Error " + err);
-					} else {
-						res.send(result.rows);
-						//res.render('pages/db', {results: result.rows});
-					}
-				});
+				res.send(result.rows);
+				//res.render('pages/db', {results: result.rows});
 			}
 		});
 	});
