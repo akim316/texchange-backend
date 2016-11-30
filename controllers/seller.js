@@ -31,6 +31,22 @@ exports.postTextbook = function(req, res) {
 	});
 
 };
+exports.getRequestedList = function(req, res) {
+	var listingId = req.params.listingId;
+
+	pg.connect(process.env.DATABASE_URL, function(err, client, done) {
+		client.query("SELECT buyer from exchange_info WHERE listing_id=" + listingId, 
+			function(err, result) {
+				done();
+				if (err) {
+					console.error(err); res.send("Error " + err);
+				} else {
+					res.send(result.rows[0]);
+				}
+			});
+	});
+
+};
 exports.listTransactions = function(req, res) {
 	var sellerId = req.params.sellerId;
 
@@ -101,8 +117,10 @@ exports.removePost = function(req, res) {
 					var seller = result.rows[0].seller;
 
 					var title = result.rows[0].title;
-					for (var i = 0; i < buyers.length; i++) {
-						sendRemovedEmail(seller, buyers[i], title);
+					if (buyers) {
+						for (var i = 0; i < buyers.length; i++) {
+							sendRemovedEmail(seller, buyers[i], title);
+						}
 					}
 
 					client.query("DELETE FROM exchange_info WHERE listing_id=$1", [listingId],
@@ -150,20 +168,4 @@ exports.confirmPurchase = function(req, res) {
 				}
 			});
 	});
-};
-exports.getRequestedList = function(req, res) {
-	var listingId = req.params.listingId;
-
-	pg.connect(process.env.DATABASE_URL, function(err, client, done) {
-		client.query("SELECT buyer from exchange_info WHERE listing_id=" + listingId, 
-			function(err, result) {
-				done();
-				if (err) {
-					console.error(err); res.send("Error " + err);
-				} else {
-					res.send(result.rows[0]);
-				}
-			});
-	});
-
 };
