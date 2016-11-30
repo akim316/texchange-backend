@@ -56,8 +56,7 @@ exports.purchaseTextbook = function(req, res) {
 							to: seller + '@gatech.edu',
 							subject: 'Texchange: Someone has requested to buy your textbook: ' + title + '!',
 							text: buyerId + ' has requested to purchase your book ' + title +
-								  ' for ' + cost + '. Please use this email to communicate with the buyer about payment method, as well as exchange location and time. ' +
-								  'Make sure to confirm the purchase in our app!' 
+								  ' for ' + cost + '. Please use this email to communicate with the buyer about payment method, as well as exchange location and time. '
 						}
 						mailgun.messages().send(data, function (error, body) {
   							console.log(body);
@@ -73,8 +72,13 @@ exports.purchaseTextbook = function(req, res) {
 };
 
 //dont show postings that which the buyer has already requested
-exports.getAvailable = function(req, res) {
-	var isbn = req.params.isbn;
+exports.getAvailable = function(req, res, isbnInput) {
+	var isbn;
+	if (req.params.isbn) {
+		isbn = req.params.isbn;
+	} else {
+		isbn = isbnInput;
+	}
 	var userId = req.params.userId;
 	pg.connect(process.env.DATABASE_URL, function(err, client, done) {
 		client.query('SELECT e.*, t.title FROM exchange_info e, textbook t WHERE e.isbn = t.isbn AND e.isbn=\'' + isbn + '\' AND ' +
@@ -131,6 +135,48 @@ exports.cancelRequest = function(req, res) {
 				//res.render('pages/db', {results: result.rows});
 			}
 		});
+	});
+
+};
+exports.searchTextbook = function(req, res) {
+	var buyerId = req.params.buyerId;
+	var textbook = req.query.textbook;
+	var isbn = req.query.isbn;
+
+	pg.connect(process.env.DATABASE_URL, function(err, client, done) {
+		if (textbook) {
+			client.query('SELECT * from textbook WHERE title=$1', [textbook], function(err, result) {
+				done();
+
+				if (err) {
+					console.error(err); res.send("Error " + err);
+				} else {
+					if (result.rows[0]) {
+						exports.getAvailable(req, res, result.rows[0].isbn);
+					} else {
+						res.send([]);
+					}
+					//res.render('pages/db', {results: result.rows});
+				}
+			});
+		}
+		if (isbn) {
+			client.query('SELECT * from textbook WHERE isbn=$1', [isbn], function(err, result) {
+				done();
+
+				if (err) {
+					console.error(err); res.send("Error " + err);
+				} else {
+					if (result.rows[0]) {
+						exports.getAvailable(req, res, isbn);
+					} else {
+						res.send([]);
+					}
+					//res.render('pages/db', {results: result.rows});
+				}
+			});
+		}
+
 	});
 
 };

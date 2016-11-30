@@ -14,6 +14,7 @@ module.exports = function (app) {
 	app.get('/listingforbuyer/isbn/:isbn/buyer/:userId', buyer.getAvailable);
 	app.get('/buyerhistory/buyer/:buyerId', buyer.getHistory);
 	app.get('/cancelrequest/buyer/:buyerId/listing/:listingId', buyer.cancelRequest);
+	app.get('/buyersearch/buyer/:buyerId/textbook', buyer.searchTextbook);
 
 	app.get('/sellerpost/seller/:sellerId', seller.postTextbook);
 	app.get('/sellertransactions/seller/:sellerId', seller.listTransactions);
