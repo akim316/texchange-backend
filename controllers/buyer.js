@@ -34,7 +34,7 @@ exports.purchaseTextbook = function(req, res) {
 	var listingId = req.params.listingId;
 
 	pg.connect(process.env.DATABASE_URL, function(err, client, done) {
-		client.query("UPDATE exchange_info SET buyer = array_append(buyer, \'" + buyerId + "\' WHERE listing_id = \'" + listingId + "\'", function(err, result) {
+		client.query("UPDATE exchange_info SET buyer = array_append(buyer, \'" + buyerId + "\') WHERE listing_id = " + listingId, function(err, result) {
 			done();
 			var cost = 0;
 			var isbn = "";
