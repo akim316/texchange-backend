@@ -35,7 +35,7 @@ exports.listTransactions = function(req, res) {
 	var sellerId = req.params.sellerId;
 
 	pg.connect(process.env.DATABASE_URL, function(err, client, done) {
-		client.query("SELECT * FROM exchange_info WHERE seller=$1", [sellerId],
+		client.query("SELECT e.*, t.title, t.author FROM exchange_info e, textbook t WHERE seller=$1 and e.isbn=t.isbn", [sellerId],
 			function(err, result) {
 				done();
 				var pending = [];
