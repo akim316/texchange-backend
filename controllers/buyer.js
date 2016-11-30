@@ -76,12 +76,13 @@ exports.getAvailable = function(req, res) {
 	var userId = req.params.userId;
 	pg.connect(process.env.DATABASE_URL, function(err, client, done) {
 
-		client.query('SELECT * FROM exchange_info WHERE isbn=\'' + isbn + '\' AND buyer=\'' + userId + '\'', function(err, result) {
+		client.query('SELECT * FROM exchange_info WHERE isbn=\'' + isbn + '\' AND buyer @> \'{"' + userId + '"}\'', function(err, result) {
 			done();
 			if (result.rows.length > 0) {
 				res.send([]);
 			} else {
-				client.query('SELECT * FROM exchange_info WHERE isbn=\'' + isbn + '\' AND buyer IS NULL AND seller IS NOT NULL OR buyer is NOT NULL and seller is NOT NULL and confirmed is FALSE', function(err, result) {
+				client.query('SELECT e.*, t.title FROM exchange_info e, textbook t WHERE e.isbn = t.isbn AND e.isbn=\'' + isbn + '\' AND ' +
+					'((e.buyer IS NULL AND e.seller IS NOT NULL) OR (e.buyer is NOT NULL and e.seller is NOT NULL and e.confirmed is FALSE))', function(err, result) {
 					done();
 					if (err) {
 						console.error(err); res.send("Error " + err);
